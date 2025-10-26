@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Play, MessageSquare, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useLMConfig } from '../contexts/LMConfigContext';
 
 interface PlaygroundSidebarProps {
   workflowId: string | null;
@@ -13,6 +14,8 @@ interface PlaygroundSidebarProps {
 }
 
 const PlaygroundSidebar: React.FC<PlaygroundSidebarProps> = ({ workflowId, workflowIR, workflowName, onClose, onExecute, onExecutionResults, onSaveWorkflow }) => {
+  const { mcpServers: globalMCPServers } = useLMConfig();
+  
   const [inputText, setInputText] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{
     role: 'user' | 'assistant' | 'system';
@@ -108,7 +111,7 @@ const PlaygroundSidebar: React.FC<PlaygroundSidebarProps> = ({ workflowId, workf
         }
       }
 
-      // Call the playground execution endpoint with workflow IR, question, and history
+      // Call the playground execution endpoint with workflow IR, question, history, and global MCP servers
       const response = await fetch('/api/v1/execution/playground', {
         method: 'POST',
         headers: {
@@ -118,7 +121,13 @@ const PlaygroundSidebar: React.FC<PlaygroundSidebarProps> = ({ workflowId, workf
           workflow_id: executionWorkflowId,
           workflow_ir: workflowIR,
           question: userInput,
-          conversation_history: conversationHistory
+          conversation_history: conversationHistory,
+          // We need to send the global MCP servers to the backend so that when the Global MCP server is updated,
+          // the MCP servers are updated in the playground.
+          global_mcp_servers: globalMCPServers.map(s => ({
+            url: s.url,
+            selectedTools: s.selectedTools
+          }))
         }),
       });
 
