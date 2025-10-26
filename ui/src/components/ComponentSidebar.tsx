@@ -64,15 +64,19 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({ onAddNode, isDatabr
           id: 'react',
           name: 'ReAct',
           icon: Brain,
-          description: 'Reasoning and acting module',
+          description: 'Reasoning and acting with MCP tools',
           type: 'module',
-          enabled: false,
+          enabled: true,
           data: {
             label: 'ReAct',
             moduleType: 'ReAct',
             model: '',
             instruction: '',
-            parameters: {}
+            parameters: {},
+            mcpServers: [],
+            maxIters: 5,
+            useGlobalMcpServers: false,
+            selectedTools: {}
           }
         },
         // {

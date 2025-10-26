@@ -5,34 +5,45 @@ export interface LMConfig {
   modelName: string;
 }
 
+export interface MCPServer {
+  url: string;
+  selectedTools: string[];
+}
+
+export interface GlobalConfig {
+  lmConfig: LMConfig | null;
+  mcpServers: MCPServer[];
+}
+
 interface LMConfigContextType {
   globalLMConfig: LMConfig | null;
   setGlobalLMConfig: (config: LMConfig | null) => void;
+  mcpServers: MCPServer[];
+  setMCPServers: (servers: MCPServer[]) => void;
   availableProviders: Record<string, boolean>;
   refreshProviderStatus: () => Promise<void>;
 }
 
 const LMConfigContext = createContext<LMConfigContextType | undefined>(undefined);
 
-const LM_CONFIG_STORAGE_KEY = 'dspy-forge-lm-config';
+const GLOBAL_CONFIG_STORAGE_KEY = 'dspy-forge-global-config';
 
 export const LMConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [globalLMConfig, setGlobalLMConfigState] = useState<LMConfig | null>(null);
+  const [mcpServers, setMCPServersState] = useState<MCPServer[]>([]);
   const [availableProviders, setAvailableProviders] = useState<Record<string, boolean>>({});
 
-  // Load config from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(LM_CONFIG_STORAGE_KEY);
+    const stored = localStorage.getItem(GLOBAL_CONFIG_STORAGE_KEY);
     if (stored) {
       try {
-        const config = JSON.parse(stored);
-        setGlobalLMConfigState(config);
+        const config: GlobalConfig = JSON.parse(stored);
+        setGlobalLMConfigState(config.lmConfig || null);
+        setMCPServersState(config.mcpServers || []);
       } catch (e) {
-        console.error('Failed to parse stored LM config:', e);
+        console.error('Failed to parse stored global config:', e);
       }
     }
-
-    // Fetch available providers from backend
     refreshProviderStatus();
   }, []);
 
@@ -48,13 +59,19 @@ export const LMConfigProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const saveGlobalConfig = (lmConfig: LMConfig | null, servers: MCPServer[]) => {
+    const config: GlobalConfig = { lmConfig, mcpServers: servers };
+    localStorage.setItem(GLOBAL_CONFIG_STORAGE_KEY, JSON.stringify(config));
+  };
+
   const setGlobalLMConfig = (config: LMConfig | null) => {
     setGlobalLMConfigState(config);
-    if (config) {
-      localStorage.setItem(LM_CONFIG_STORAGE_KEY, JSON.stringify(config));
-    } else {
-      localStorage.removeItem(LM_CONFIG_STORAGE_KEY);
-    }
+    saveGlobalConfig(config, mcpServers);
+  };
+
+  const setMCPServers = (servers: MCPServer[]) => {
+    setMCPServersState(servers);
+    saveGlobalConfig(globalLMConfig, servers);
   };
 
   return (
@@ -62,6 +79,8 @@ export const LMConfigProvider: React.FC<{ children: ReactNode }> = ({ children }
       value={{
         globalLMConfig,
         setGlobalLMConfig,
+        mcpServers,
+        setMCPServers,
         availableProviders,
         refreshProviderStatus,
       }}

@@ -107,6 +107,11 @@ export interface ModuleNodeData extends BaseNodeData {
   model?: string;
   instruction?: string; // Task description for DSPy signature
   parameters: Record<string, any>;
+  // ReAct specific fields
+  mcpServers?: string[];
+  maxIters?: number;
+  useGlobalMcpServers?: boolean;
+  selectedTools?: Record<string, string[]>;
 }
 
 export interface LogicNodeData extends BaseNodeData {
