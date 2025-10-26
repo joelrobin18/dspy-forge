@@ -10,6 +10,7 @@ from dspy_forge.models.workflow import NodeType, ModuleType, RetrieverType, Logi
 # Import all component templates
 from .signature_field import SignatureFieldTemplate
 from .module_templates import PredictTemplate, ChainOfThoughtTemplate
+from .react_template import ReActTemplate
 from .retriever_templates import UnstructuredRetrieveTemplate, StructuredRetrieveTemplate
 from .logic_templates import RouterTemplate, MergeTemplate, FieldSelectorTemplate
 
@@ -40,6 +41,8 @@ class ModuleTemplateDispatcher:
             self._template = PredictTemplate(node, workflow)
         elif module_type == ModuleType.CHAIN_OF_THOUGHT.value:
             self._template = ChainOfThoughtTemplate(node, workflow)
+        elif module_type == ModuleType.REACT.value:
+            self._template = ReActTemplate(node, workflow)
         else:
             # Default to PredictTemplate for unknown types
             self._template = PredictTemplate(node, workflow)

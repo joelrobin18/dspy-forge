@@ -138,7 +138,11 @@ class ModuleNode(BaseNode):
         "module_type": None,
         "model": None,
         "instruction": None,
-        "parameters": {}
+        "parameters": {},
+        "mcp_servers": [],
+        "max_iters": 5,
+        "use_global_mcp_servers": False,
+        "selected_tools": {}
     })
 
 
@@ -228,7 +232,8 @@ class PlaygroundExecutionRequest(BaseModel):
     workflow_ir: Dict[str, Any]  # Workflow IR containing nodes and edges
     question: str
     conversation_history: list = []  # List of previous conversation exchanges
-
+    global_mcp_servers: List[Dict[str, Any]] = []  # Current global MCP server configuration
+    
 
 class DeploymentRequest(BaseModel):
     model_name: str

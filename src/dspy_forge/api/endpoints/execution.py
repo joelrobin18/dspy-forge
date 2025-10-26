@@ -43,6 +43,20 @@ def _normalize_workflow_data(workflow_ir: Dict[str, Any]) -> Dict[str, Any]:
                 normalized_node["data"]["module_type"] = node_data["moduleType"]
                 if "module_type" not in node_data:  # Don't duplicate if both exist
                     del normalized_node["data"]["moduleType"]
+
+            mcp_mappings = {
+                "mcpServers": "mcp_servers",
+                "useGlobalMcpServers": "use_global_mcp_servers",
+                "selectedTools": "selected_tools",
+                "globalMcpServersSnapshot": "global_mcp_servers_snapshot",
+                "maxIters": "max_iters"
+            }
+            
+            for camel_case, snake_case in mcp_mappings.items():
+                if camel_case in node_data:
+                    normalized_node["data"][snake_case] = node_data[camel_case]
+                    if snake_case not in node_data:  # Don't duplicate if both exist
+                        del normalized_node["data"][camel_case]
         
         elif node.get("type") == "signature_field":
             for field in normalized_node["data"]["fields"]:
@@ -260,7 +274,7 @@ async def execute_workflow_playground(request: PlaygroundExecutionRequest):
         
         # Execute workflow directly
         logger.debug("Executing workflow")
-        execution = await execution_engine.execute_workflow(workflow, processed_input)
+        execution = await execution_engine.execute_workflow(workflow, processed_input, request.global_mcp_servers)
         
         logger.info(f"Execution completed with status: {execution.status}")
         if execution.error:

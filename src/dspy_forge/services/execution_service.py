@@ -16,13 +16,14 @@ logger = get_logger(__name__)
 
 class ExecutionContext:
     """Context for workflow execution"""
-    def __init__(self, workflow: Workflow, input_data: Dict[str, Any]):
+    def __init__(self, workflow: Workflow, input_data: Dict[str, Any], global_mcp_servers: List[Dict[str, Any]] = None):
         self.workflow = workflow
         self.input_data = input_data
         self.node_outputs: Dict[str, Dict[str, Any]] = {}
         self.execution_trace: List[Dict[str, Any]] = []
         self.models: Dict[str, Any] = {}
         self.node_counts: Dict[str, int] = {}  # Track count of each module type
+        self.global_mcp_servers = global_mcp_servers or []  # BUG FIX #1: Store global MCP config
         
     def set_node_output(self, node_id: str, output: Dict[str, Any]):
         """Set output for a node"""
@@ -50,7 +51,7 @@ class WorkflowExecutionEngine:
     def __init__(self):
         self.active_executions: Dict[str, WorkflowExecution] = {}
     
-    async def execute_workflow(self, workflow: Workflow, input_data: Dict[str, Any]) -> WorkflowExecution:
+    async def execute_workflow(self, workflow: Workflow, input_data: Dict[str, Any], global_mcp_servers: List[Dict[str, Any]] = None) -> WorkflowExecution:
         """Execute a workflow with given input data using CompoundProgram"""
         execution_id = str(uuid.uuid4())
 
@@ -72,7 +73,7 @@ class WorkflowExecutionEngine:
                 f"workflows/{workflow.id}/program.json")
 
             # Create execution context
-            context = ExecutionContext(workflow, input_data)
+            context = ExecutionContext(workflow, input_data, global_mcp_servers)
 
             # Create and execute CompoundProgram
             program = CompoundProgram(workflow, context)

@@ -151,6 +151,13 @@ class WorkflowCompilerService:
                 if node_code.get('instance_var'):
                     instance_vars.append(node_code['instance_var'])
 
+            # Collect helper methods from all nodes. Needed for MCP tools.
+            helper_methods = []
+            for node_id in execution_order:
+                node_code = node_code_map.get(node_id, {})
+                if node_code.get('helper_methods'):
+                    helper_methods.append(node_code['helper_methods'])
+            
             # Second pass: generate forward method with router branching
             for node_id in execution_order:
                 if node_id in processed_nodes:
@@ -228,6 +235,12 @@ class WorkflowCompilerService:
             # Return final prediction
             return_args = ", ".join([f"{field}={field}" for field in end_fields])
             code_lines.append(f"        return dspy.Prediction({return_args})")
+            
+            # Add helper methods to the class. Needed for MCP tools.
+            for helper_method in helper_methods:
+                if helper_method.strip():
+                    code_lines.append("")
+                    code_lines.append(helper_method)
             
             # Generate main method
             self._generate_main_method(start_fields, code_lines)
